@@ -1,6 +1,1 @@
-pwd
-ls
-path
-ls
-path /bin
-ls
+ls > batchOut

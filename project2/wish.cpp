@@ -38,6 +38,54 @@ int main(int argc, char* argv[]){
                     args.push_back(token);
                     token = strtok(NULL, " \t");
                 }
+                vector<string> findRedirection;
+                for(size_t k = 0; k < args.size(); k++){
+                    string currentToken = args[k];
+                    size_t pos = currentToken.find('>');
+                    if(pos == string::npos){
+                        findRedirection.push_back(currentToken);
+                    }
+                    else{
+                        string command = currentToken.substr(0, currentToken.find(">"));
+                        if(!command.empty()){
+                            findRedirection.push_back(command);
+                        }
+                        findRedirection.push_back(">");
+                        string outFile = currentToken.substr(currentToken.find(">") + 1);
+                        if(!outFile.empty()){
+                            findRedirection.push_back(outFile);
+                        }
+                    }
+                }
+                int redirectionCount = 0;
+                for(size_t l = 0; l < findRedirection.size(); l++){
+                    if(strcmp(findRedirection[l].c_str(), ">") == 0){
+                        redirectionCount++;
+                    }
+                }
+                if(findRedirection.empty()){
+                    delete[] buffer;
+                    continue;
+                }
+                if(redirectionCount > 1 || findRedirection[0] == ">" || findRedirection[findRedirection.size() - 1] == ">" || (redirectionCount == 1 && findRedirection[findRedirection.size() - 1] != ">")){
+                    write(STDERR_FILENO, error_message, strlen(error_message));
+                    delete[] buffer;
+                    continue;
+                }
+                string outFileName;
+                for(size_t m = 0; m < findRedirection.size(); m++){
+                    if(findRedirection[m] == ">"){
+                        outFileName = findRedirection[m + 1];
+                        break;
+                    }
+                }
+                args.clear();
+                for(size_t n = 0; n < findRedirection.size(); n++){
+                    if(findRedirection[n] == ">"){
+                        break;
+                    }
+                    args.push_back(const_cast<char*>(findRedirection[n].c_str()));
+                }
                 if(args.empty()){
                     delete[] buffer;
                     continue;
@@ -86,6 +134,26 @@ int main(int argc, char* argv[]){
                             break;
                         }
                         else if(pid == 0){
+                            int fileDescriptor;
+                            int dup2Check;
+                            if(!outFileName.empty()){
+                                fileDescriptor = open(outFileName.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                                if(fileDescriptor < 0){
+                                    write(STDERR_FILENO, error_message, strlen(error_message));
+                                    exit(1);
+                                }
+                                dup2Check = dup2(fileDescriptor, STDOUT_FILENO);
+                                if(dup2Check < 0){
+                                    write(STDERR_FILENO, error_message, strlen(error_message));
+                                    exit(1);
+                                }
+                                dup2Check = dup2(fileDescriptor, STDERR_FILENO);
+                                if(dup2Check < 0){
+                                    write(STDERR_FILENO, error_message, strlen(error_message));
+                                    exit(1);
+                                }
+                                close(fileDescriptor);
+                            }
                             execv((paths[j] + args[0]).c_str(), args.data());
                             write(STDERR_FILENO, error_message, strlen(error_message));
                             exit(1);
@@ -117,6 +185,54 @@ int main(int argc, char* argv[]){
                     args.push_back(token);
                     token = strtok(NULL, " \t");
                 }
+                vector<string> findRedirection;
+                for(size_t k = 0; k < args.size(); k++){
+                    string currentToken = args[k];
+                    size_t pos = currentToken.find('>');
+                    if(pos == string::npos){
+                        findRedirection.push_back(currentToken);
+                    }
+                    else{
+                        string command = currentToken.substr(0, currentToken.find(">"));
+                        if(!command.empty()){
+                            findRedirection.push_back(command);
+                        }
+                        findRedirection.push_back(">");
+                        string outFile = currentToken.substr(currentToken.find(">") + 1);
+                        if(!outFile.empty()){
+                            findRedirection.push_back(outFile);
+                        }
+                    }
+                }
+                int redirectionCount = 0;
+                for(size_t l = 0; l < findRedirection.size(); l++){
+                    if(strcmp(findRedirection[l].c_str(), ">") == 0){
+                        redirectionCount++;
+                    }
+                }
+                if(findRedirection.empty()){
+                    delete[] buffer;
+                    continue;
+                }
+                if(redirectionCount > 1 || findRedirection[0] == ">" || findRedirection[findRedirection.size() - 1] == ">" || (redirectionCount == 1 && findRedirection[findRedirection.size() - 1] != ">")){
+                    write(STDERR_FILENO, error_message, strlen(error_message));
+                    delete[] buffer;
+                    continue;
+                }
+                string outFileName;
+                for(size_t m = 0; m < findRedirection.size(); m++){
+                    if(findRedirection[m] == ">"){
+                        outFileName = findRedirection[m + 1];
+                        break;
+                    }
+                }
+                args.clear();
+                for(size_t n = 0; n < findRedirection.size(); n++){
+                    if(findRedirection[n] == ">"){
+                        break;
+                    }
+                    args.push_back(const_cast<char*>(findRedirection[n].c_str()));
+                }
                 if(args.empty()){
                     delete[] buffer;
                     continue;
@@ -165,6 +281,26 @@ int main(int argc, char* argv[]){
                             break;
                         }
                         else if(pid == 0){
+                            int fileDescriptor;
+                            int dup2Check;
+                            if(!outFileName.empty()){
+                                fileDescriptor = open(outFileName.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                                if(fileDescriptor < 0){
+                                    write(STDERR_FILENO, error_message, strlen(error_message));
+                                    exit(1);
+                                }
+                                dup2Check = dup2(fileDescriptor, STDOUT_FILENO);
+                                if(dup2Check < 0){
+                                    write(STDERR_FILENO, error_message, strlen(error_message));
+                                    exit(1);
+                                }
+                                dup2Check = dup2(fileDescriptor, STDERR_FILENO);
+                                if(dup2Check < 0){
+                                    write(STDERR_FILENO, error_message, strlen(error_message));
+                                    exit(1);
+                                }
+                                close(fileDescriptor);
+                            }
                             execv((paths[j] + args[0]).c_str(), args.data());
                             write(STDERR_FILENO, error_message, strlen(error_message));
                             exit(1);
