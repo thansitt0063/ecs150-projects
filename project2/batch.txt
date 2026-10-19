@@ -1,1 +1,6 @@
-Hey hello  hi     yo              wassup          kjsdhf            kjsdfsdsadsa
+pwd
+ls
+path
+ls
+path /bin
+ls

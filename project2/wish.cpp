@@ -117,6 +117,68 @@ int main(int argc, char* argv[]){
                     args.push_back(token);
                     token = strtok(NULL, " \t");
                 }
+                if(args.empty()){
+                    delete[] buffer;
+                    continue;
+                }
+                if(strcmp(args[0], "exit") == 0){
+                    if(args.size() == 1){
+                        exit(0);
+                    }
+                    else{
+                        write(STDERR_FILENO, error_message, strlen(error_message));
+                        delete[] buffer;
+                        continue;
+                    }
+                }
+                if(strcmp(args[0], "cd") == 0){
+                    if(args.size() != 2){
+                        write(STDERR_FILENO, error_message, strlen(error_message));
+                        delete[] buffer;
+                        continue;
+                    }
+                    else{
+                        if(chdir(args[1]) != 0){
+                            write(STDERR_FILENO, error_message, strlen(error_message));
+                        }
+                        delete[] buffer;
+                        continue;
+                    }
+                }
+                if(strcmp(args[0], "path") == 0){
+                    paths.clear();
+                    for(size_t i = 1; i < args.size(); i++){
+                        paths.push_back(string(args[i]) + "/");
+                    }
+                    delete[] buffer;
+                    continue;
+                }
+                args.push_back(NULL);
+                found = -1;
+                for(size_t j = 0; j < paths.size(); j++){
+                    found = access((paths[j] + args[0]).c_str(), X_OK);
+                    if(found == 0){
+                        pid_t pid = fork();
+                        if(pid > 0){
+                            wait(NULL);
+                            delete[] buffer;
+                            break;
+                        }
+                        else if(pid == 0){
+                            execv((paths[j] + args[0]).c_str(), args.data());
+                            write(STDERR_FILENO, error_message, strlen(error_message));
+                            exit(1);
+                        }
+                        else{
+                            write(STDERR_FILENO, error_message, strlen(error_message));
+                            delete[] buffer;
+                        }
+                    }
+                }
+                if(found != 0){
+                    write(STDERR_FILENO, error_message, strlen(error_message));
+                    delete[] buffer;
+                }
             }
         }
     }
