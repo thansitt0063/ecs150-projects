@@ -14,8 +14,9 @@ int main(int argc, char* argv[]){
     char error_message[30] = "An error has occurred\n";
     char* buffer;
     char* token;
+    int found = -1;
     vector<char*> args;
-    string path = "/bin/";
+    vector<string> paths = {"/bin/"};
     if(argc > 2){
         write(STDERR_FILENO, error_message, strlen(error_message));
         exit(1);
@@ -65,27 +66,37 @@ int main(int argc, char* argv[]){
                         continue;
                     }
                 }
-                /*if(strcmp(args[0], "path") == 0){
-
-                }*/
+                if(strcmp(args[0], "path") == 0){
+                    paths.clear();
+                    for(size_t i = 1; i < args.size(); i++){
+                        paths.push_back(string(args[i]) + "/");
+                    }
+                    delete[] buffer;
+                    continue;
+                }
                 args.push_back(NULL);
-                if(access((path + args[0]).c_str(), X_OK) == 0){
-                    pid_t pid = fork();
-                    if(pid > 0){
-                        wait(NULL);
-                        delete[] buffer;
-                    }
-                    else if(pid == 0){
-                        execv((path + args[0]).c_str(), args.data());
-                        write(STDERR_FILENO, error_message, strlen(error_message));
-                        exit(1);
-                    }
-                    else{
-                        write(STDERR_FILENO, error_message, strlen(error_message));
-                        delete[] buffer;
+                found = -1;
+                for(size_t j = 0; j < paths.size(); j++){
+                    found = access((paths[j] + args[0]).c_str(), X_OK);
+                    if(found == 0){
+                        pid_t pid = fork();
+                        if(pid > 0){
+                            wait(NULL);
+                            delete[] buffer;
+                            break;
+                        }
+                        else if(pid == 0){
+                            execv((paths[j] + args[0]).c_str(), args.data());
+                            write(STDERR_FILENO, error_message, strlen(error_message));
+                            exit(1);
+                        }
+                        else{
+                            write(STDERR_FILENO, error_message, strlen(error_message));
+                            delete[] buffer;
+                        }
                     }
                 }
-                else{
+                if(found != 0){
                     write(STDERR_FILENO, error_message, strlen(error_message));
                     delete[] buffer;
                 }
